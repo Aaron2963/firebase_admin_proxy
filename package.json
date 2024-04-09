@@ -1,0 +1,21 @@
+{
+  "name": "firebase_admin_proxy",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "node .\\src\\index.js listUsers",
+    "build": "pkg .\\src\\index.js --target node18-linux-x64 --output firebase_admin_proxy"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "commander": "^12.0.0",
+    "firebase-admin": "^12.0.0"
+  },
+  "pkg": {
+    "assets": [
+      "node_modules/**/*"
+    ]
+  }
+}
