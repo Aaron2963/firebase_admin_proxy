@@ -1,4 +1,4 @@
-const { getAuth } = require("firebase-admin/auth");
+import { getAuth } from "firebase-admin/auth";
 
 class Auth {
   static get auth() {
@@ -29,10 +29,15 @@ class Auth {
     return users.users.map((user) => user.toJSON());
   }
 
+  static async createCustomToken(uid) {
+    const customToken = await this.auth.createCustomToken(uid);
+    return customToken;
+  }
+
   static async verifyIdToken(idToken) {
     const decodedToken = await this.auth.verifyIdToken(idToken);
     return decodedToken.toJSON();
   }
 }
 
-module.exports = Auth;
+export default Auth;
