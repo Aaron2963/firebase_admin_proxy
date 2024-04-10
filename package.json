@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "node .\\src\\index.js listUsers",
-    "build": "pkg .\\src\\index.js --target node18-linux-x64 --output firebase_admin_proxy"
+    "build": "pkg .\\src\\index.js --target node18-linux-x64 --output dist\\firebase_admin_proxy"
   },
   "author": "",
   "license": "ISC",
