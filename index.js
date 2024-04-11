@@ -113,19 +113,19 @@ app.post("/credentials", (req, res) => {
   }
 });
 
-app.get("/user", initializaApp, async (req, res) => {
+app.get("/auth/user", initializaApp, async (req, res) => {
   const users = await new Auth(apps[req.query.projectId]).listUsers();
   res.json(users);
 });
 
-app.get("/user/:uid", initializaApp, async (req, res) => {
+app.get("/auth/user/:uid", initializaApp, async (req, res) => {
   const user = await new Auth(apps[req.query.projectId]).getUser(
     req.params.uid
   );
   res.json(user);
 });
 
-app.post("/user", initializaApp, async (req, res) => {
+app.post("/auth/user", initializaApp, async (req, res) => {
   const { email, uid } = req.body;
   const userId = await new Auth(apps[req.query.projectId]).createUser(
     email,
@@ -134,19 +134,19 @@ app.post("/user", initializaApp, async (req, res) => {
   res.json({ userId });
 });
 
-app.delete("/user/:uid", initializaApp, async (req, res) => {
+app.delete("/auth/user/:uid", initializaApp, async (req, res) => {
   await new Auth(apps[req.query.projectId]).deleteUser(req.params.uid);
-  res.status(204);
+  res.status(204).send();
 });
 
-app.get("/custom-token/:uid", initializaApp, async (req, res) => {
+app.get("/auth/custom-token/:uid", initializaApp, async (req, res) => {
   const token = await new Auth(apps[req.query.projectId]).createCustomToken(
     req.params.uid
   );
   res.json({ token });
 });
 
-app.post("/id-token/verify", initializaApp, async (req, res) => {
+app.post("/auth/id-token/verify", initializaApp, async (req, res) => {
   const { idToken } = req.body;
   try {
     const token = await new Auth(apps[req.query.projectId]).verifyIdToken(
@@ -154,11 +154,11 @@ app.post("/id-token/verify", initializaApp, async (req, res) => {
     );
     res.json(token);
   } catch (error) {
-    res.status(401);
+    res.status(401).send(error.message);
   }
 });
 
-app.get("/doc", initializaApp, async (req, res) => {
+app.get("/fs/doc", initializaApp, async (req, res) => {
   try {
     const doc = await new Document(apps[req.query.projectId]).getDoc(
       req.query.path
@@ -170,7 +170,7 @@ app.get("/doc", initializaApp, async (req, res) => {
   }
 });
 
-app.post("/doc", initializaApp, async (req, res) => {
+app.post("/fs/doc", initializaApp, async (req, res) => {
   try {
     await new Document(apps[req.query.projectId]).setDocument(
       req.query.path,
