@@ -2,9 +2,10 @@
   "projects": ["misa-chat-49ff4"],
   "clients": [
     {
-      "clientId": "client-1",
-      "clientSecret": "hashed-secret-1",
+      "id": "client-1",
+      "secret": "$2b$10$BCrjasbCD09S0HoXwEOJIebGkbru6hRPlg0O2hNbJU8pLNsMT1PfO",
       "scopes": ["misa-chat-49ff4"]
     }
-  ]
+  ],
+  "port": 3000
 }

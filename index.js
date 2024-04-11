@@ -4,28 +4,48 @@ import { readFileSync, readdirSync, writeFileSync } from "fs";
 import { dirname, resolve } from "path";
 import { fileURLToPath } from "url";
 import express from "express";
+import Client from "./model/client.js";
+import Credential from "./credential.js";
 import Auth from "./auth.js";
 import Document from "./document.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const keysPath = resolve(__dirname, "keys");
-const port = 3000;
+const privateKeyPath = resolve(
+  __dirname,
+  "keys",
+  "firebase_admin_proxy_auth.key"
+);
 const app = express();
 const projects = [];
 const credentials = {};
 const apps = {};
+let auth;
+
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 function init() {
   let config = readFileSync(resolve(__dirname, "config.json"), "utf-8");
   config = JSON.parse(config);
+  // load projects
   config.projects.forEach((projectId) => {
     projects.push(projectId);
     credentials[projectId] = "";
   });
+  // load oauth clients
+  const clients = [];
+  config.clients.forEach((client) => {
+    const { id, secret, scopes } = client;
+    clients.push(new Client(id, secret, scopes));
+  });
+  auth = new Credential(clients, readFileSync(privateKeyPath, "utf-8"));
+  // load firebase credentials
   readdirSync(keysPath).forEach((file) => {
     const projectId = file.split(".")[0];
     credentials[projectId] = `${keysPath}/${file}`;
   });
+  const port = config.port || 3000;
   app.listen(port, () => {
     console.log(`Server running on port ${port}`);
   });
@@ -51,6 +71,28 @@ function initializaApp(req, res, next) {
   req.query.projectId = projectId;
   next();
 }
+
+app.post("/token", (req, res) => {
+  const { client_id, client_secret, grant_type } = req.body;
+  if (!client_id || !client_secret || !grant_type) {
+    res.status(400).json({ error: "invalid_request" });
+  }
+  if (grant_type !== "client_credentials") {
+    res.status(400).json({ error: "unsupported_grant_type" });
+    return;
+  }
+  try {
+    const token = auth.issueToken(client_id, client_secret);
+    res.json({
+      access_token: token,
+      token_type: "Bearer",
+      expires_in: 30 * 24 * 60 * 60,
+    });
+  } catch (error) {
+    console.log("error", error);
+    res.status(400).json({ error: "invalid_client" });
+  }
+});
 
 app.post("/credentials", (req, res) => {
   const { key } = req.body;
