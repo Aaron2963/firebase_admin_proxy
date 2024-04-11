@@ -5,18 +5,15 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "bun index.js"
+    "test": "node index.js"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "bunrest": "^1.3.8",
-    "firebase-admin": "^12.0.0"
-  },
-  "pkg": {
-    "assets": [
-      "node_modules/**/*"
-    ]
+    "bcrypt": "^5.1.1",
+    "express": "^4.19.2",
+    "firebase-admin": "^12.0.0",
+    "jsonwebtoken": "^9.0.2"
   },
   "devDependencies": {
     "@types/bun": "latest"

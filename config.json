@@ -1,0 +1,10 @@
+{
+  "projects": ["misa-chat-49ff4"],
+  "clients": [
+    {
+      "clientId": "client-1",
+      "clientSecret": "hashed-secret-1",
+      "scopes": ["misa-chat-49ff4"]
+    }
+  ]
+}
