@@ -1,0 +1,15 @@
+version: '3.1'
+
+name: firebase-admin-proxy
+services:
+  web:
+    container_name: firebase-admin-proxy-web
+    build: 
+      context: .
+    volumes:
+      - ./keys:/usr/src/app/keys
+      - ./certs:/usr/src/app/certs
+      - ./logs:/usr/src/app/logs
+      - ./config.json:/usr/src/app/config.json
+    ports:
+      - 3000:3000

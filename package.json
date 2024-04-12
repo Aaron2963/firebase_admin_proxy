@@ -5,23 +5,22 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "node index.js"
+    "dev": "nodemon index.js",
+    "start": "node index.js"
   },
-  "author": "",
+  "author": "aaron.lin@dearsoft.com",
   "license": "ISC",
   "dependencies": {
     "bcrypt": "^5.1.1",
     "commander": "^12.0.0",
     "express": "^4.19.2",
     "firebase-admin": "^12.0.0",
+    "https": "^1.0.0",
     "jsonwebtoken": "^9.0.2",
     "winston": "^3.13.0",
     "winston-daily-rotate-file": "^5.0.0"
   },
   "devDependencies": {
-    "@types/bun": "latest"
-  },
-  "peerDependencies": {
-    "typescript": "^5.0.0"
+    "nodemon": "^3.1.0"
   }
 }

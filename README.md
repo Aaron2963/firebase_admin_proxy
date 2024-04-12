@@ -1,5 +1,57 @@
 # Firebase Admin Proxy
 
+Firbase Admin Proxy 是一個用於執行 Firebase Admin SDK API 簡易任務的代理伺服器，提供了一個 RESTful API 介面，用於管理 Firebase 專案的用戶、憑證、文件等資源。
+
+代理伺服器的設定檔位於 `config.json`，請參照 `config.json.example` 根據實際情況修改設定檔內容。
+修改過的設定檔會在重啟伺服器後生效。
+
+| 項目 | 說明 |
+| --- | --- |
+| `port` | 伺服器監聽的埠號 |
+| `projects` | Firebase 專案 ID 的陣列 |
+| `clients` | OAuth Client Credentials 的陣列 |
+| `clients[i].id` | OAuth Client ID |
+| `clients[i].secret` | OAuth Client Secret，這裡儲存的是加密過後的密碼，請參考使用 [5.1 加密密碼](#51-加密密碼) 工具將密碼加密 |
+| `clients[i].scopes` | 該用戶可存取的 Firebase 專案 ID |
+| `ipWhiteList` | 允許存取的 IP 位址清單 |
+| `ssl.key` | SSL 金鑰檔案的路徑 |
+| `ssl.cert` | SSL 憑證檔案 (.pem) 的路徑 |
+
+# 使用方法
+
+## 1. 修改設定檔
+
+複製 `config.json.example` 並命名為 `config.json`，根據實際情況修改設定檔內容。
+
+```bash
+cd [project_dir]
+cp config.json.example config.json
+```
+
+## 2. 執行伺服器
+
+執行以下的指令，在 Docker 中啟動 Firebase Admin Proxy 伺服器的容器。
+
+```bash
+cd [project_dir]
+docker-compose up -d
+```
+
+## 3. 取得 OAuth Access Token
+
+透過 OAuth API 取得 OAuth Access Token，用於後續的 API 請求驗證，詳見 [1.1 取得 OAuth Access Token](#11-取得-oauth-access-token)。
+
+## 4. 設定專案的服務帳戶憑證
+
+第一次操作專案前，需要設定專案的服務帳戶憑證，詳見 [2.1 設定專案的服務帳戶憑證](#21-設定專案的服務帳戶憑證)。
+
+## 5. 開始操作 Firebase API
+
+至此已完成 Firebase Admin Proxy 的設定，可以開始操作 Firebase API 了。
+
+
+# API 文件
+
 ## 1. OAuth API
 
 ### 1.1 取得 OAuth Access Token

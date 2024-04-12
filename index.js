@@ -4,6 +4,7 @@ import { readFileSync, readdirSync, writeFileSync } from "fs";
 import { dirname, resolve } from "path";
 import { fileURLToPath } from "url";
 import express from "express";
+import https from "https";
 import Client from "./model/client.js";
 import OAuthCredentials from "./oauth-credentials.js";
 import Auth from "./auth.js";
@@ -17,6 +18,7 @@ const privateKeyPath = resolve(
   "keys",
   "firebase_admin_proxy_auth.key"
 );
+
 const app = express();
 const projects = [];
 const credentials = {};
@@ -38,12 +40,20 @@ app.use((req, res, next) => {
 // middleware: check ip whitelist
 app.use((req, res, next) => {
   const ip = req.socket.remoteAddress;
-  if (ipWhitelist.length > 0 && !ipWhitelist.includes(ip)) {
+  if (ipWhitelist.length === 0) next();
+  let pass = false;
+  ipWhitelist.forEach((allowed) => {
+    const re = new RegExp(allowed);
+    if (re.test(ip)) pass = true;
+  });
+  if (pass) {
+    next();
+    return;
+  } else {
     logger.warn(`Unauthorized access from ${ip}`);
     res.status(401).send("Unauthorized");
     return;
   }
-  next();
 });
 
 // middleware: initialize firebase app
@@ -104,6 +114,15 @@ function exitHandler(options, exitCode) {
   }
 }
 
+function startHandler(port, isHttps) {
+  if (isHttps) {
+    logger.info(`Starting server on port ${port} with HTTPS`);
+  } else {
+    logger.info(`Starting server on port ${port} with HTTP`);
+  }
+  logger.info(`IP Whitelist: ${ipWhitelist}`);
+}
+
 // initialize the server
 function init() {
   let config = readFileSync(resolve(__dirname, "config.json"), "utf-8");
@@ -127,7 +146,7 @@ function init() {
   });
   // load ip whitelist
   if (config.ipWhitelist && config.ipWhitelist.length > 0) {
-    ipWhitelist.push(...config.ipWhiteList);
+    ipWhitelist.push(...config.ipWhitelist);
   }
   // handle exit
   process.stdin.resume();
@@ -137,14 +156,20 @@ function init() {
   process.on("SIGUSR2", exitHandler.bind(null, { exit: true }));
   process.on("uncaughtException", exitHandler.bind(null, { exit: true }));
   // start server
-  logger.info("Starting server");
   const port = config.port || 3000;
-  setTimeout(() => {
-    throw new Error("Forced error");
-  }, 3000);
-  app.listen(port, () => {
-    console.log(`Server running on port ${port}`);
-  });
+  try {
+    const server = https.createServer(
+      {
+        key: readFileSync(config.ssl.key),
+        cert: readFileSync(config.ssl.cert),
+      },
+      app
+    );
+    server.listen(port, () => startHandler(port, true));
+  } catch (error) {
+    logger.warn(`Failed to start server with HTTPS: ${error.message}`);
+    app.listen(port, () => startHandler(port, false));
+  }
 }
 
 app.post("/token", (req, res) => {

@@ -7,8 +7,12 @@
       "scopes": ["misa-chat-49ff4"]
     }
   ],
-  "ipWhiteList": [
-    
+  "ipWhitelist": [
+    "::1"
   ],
+  "ssl": {
+    "key": "/usr/src/app/certs/firebase_admin_proxy_ssl.key",
+    "cert": "/usr/src/app/certs/firebase_admin_proxy_ssl.pem"
+  },
   "port": 3000
 }
