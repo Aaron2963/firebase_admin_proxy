@@ -1,14 +1,14 @@
-import { env } from "process";
+import process from "process";
 import { initializeApp, applicationDefault } from "firebase-admin/app";
 import { readFileSync, readdirSync, writeFileSync } from "fs";
 import { dirname, resolve } from "path";
 import { fileURLToPath } from "url";
 import express from "express";
-import winston from "winston";
 import Client from "./model/client.js";
 import OAuthCredentials from "./oauth-credentials.js";
 import Auth from "./auth.js";
 import Document from "./document.js";
+import logger from "./logger.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const keysPath = resolve(__dirname, "keys");
@@ -23,23 +23,6 @@ const credentials = {};
 const ipWhitelist = [];
 const apps = {};
 let auth;
-
-const logger = winston.createLogger({
-  // Log only if level is less than (meaning more severe) or equal to this
-  level: "info",
-  // Use timestamp and printf to create a standard log format
-  format: winston.format.combine(
-    winston.format.timestamp(),
-    winston.format.printf(
-      (info) => `[${info.level}] ${info.timestamp}: ${info.message}`
-    )
-  ),
-  // Log to the console and a file
-  transports: [
-    new winston.transports.Console(),
-    new winston.transports.File({ filename: "logs/app.log" }),
-  ],
-});
 
 // middleware: handle json and urlencoded data body
 app.use(express.json());
@@ -75,7 +58,7 @@ function initializaApp(req, res, next) {
     res.status(401).send("Credentials not found for project");
     return;
   }
-  env.GOOGLE_APPLICATION_CREDENTIALS = key;
+  process.env.GOOGLE_APPLICATION_CREDENTIALS = key;
   if (!apps[projectId]) {
     apps[projectId] = initializeApp({
       credential: applicationDefault(),
@@ -113,6 +96,14 @@ function authorize(req, res, next) {
   }
 }
 
+// handle exit
+function exitHandler(options, exitCode) {
+  if (options.exit) {
+    logger.warn(`Shutting down server: ${exitCode}`);
+    process.exit();
+  }
+}
+
 // initialize the server
 function init() {
   let config = readFileSync(resolve(__dirname, "config.json"), "utf-8");
@@ -138,8 +129,19 @@ function init() {
   if (config.ipWhitelist && config.ipWhitelist.length > 0) {
     ipWhitelist.push(...config.ipWhiteList);
   }
+  // handle exit
+  process.stdin.resume();
+  process.on("exit", exitHandler.bind(null, { cleanup: true }));
+  process.on("SIGINT", exitHandler.bind(null, { exit: true }));
+  process.on("SIGUSR1", exitHandler.bind(null, { exit: true }));
+  process.on("SIGUSR2", exitHandler.bind(null, { exit: true }));
+  process.on("uncaughtException", exitHandler.bind(null, { exit: true }));
   // start server
+  logger.info("Starting server");
   const port = config.port || 3000;
+  setTimeout(() => {
+    throw new Error("Forced error");
+  }, 3000);
   app.listen(port, () => {
     console.log(`Server running on port ${port}`);
   });
