@@ -6,7 +6,7 @@ import { fileURLToPath } from "url";
 import express from "express";
 import winston from "winston";
 import Client from "./model/client.js";
-import Credential from "./credential.js";
+import OAuthCredentials from "./oauth-credentials.js";
 import Auth from "./auth.js";
 import Document from "./document.js";
 
@@ -20,6 +20,7 @@ const privateKeyPath = resolve(
 const app = express();
 const projects = [];
 const credentials = {};
+const ipWhitelist = [];
 const apps = {};
 let auth;
 
@@ -30,7 +31,7 @@ const logger = winston.createLogger({
   format: winston.format.combine(
     winston.format.timestamp(),
     winston.format.printf(
-      (info) => `${info.timestamp} ${info.level}: ${info.message}`
+      (info) => `[${info.level}] ${info.timestamp}: ${info.message}`
     )
   ),
   // Log to the console and a file
@@ -40,41 +41,29 @@ const logger = winston.createLogger({
   ],
 });
 
+// middleware: handle json and urlencoded data body
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// middleware: log requests
 app.use((req, res, next) => {
-  //record user ip
   const ip = req.socket.remoteAddress;
   logger.info(`Received a ${req.method} request for ${req.url} from ${ip}`);
   next();
 });
 
-function init() {
-  let config = readFileSync(resolve(__dirname, "config.json"), "utf-8");
-  config = JSON.parse(config);
-  // load projects
-  config.projects.forEach((projectId) => {
-    projects.push(projectId);
-    credentials[projectId] = "";
-  });
-  // load oauth clients
-  const clients = [];
-  config.clients.forEach((client) => {
-    const { id, secret, scopes } = client;
-    clients.push(new Client(id, secret, scopes));
-  });
-  auth = new Credential(clients, readFileSync(privateKeyPath, "utf-8"));
-  // load firebase credentials
-  readdirSync(keysPath).forEach((file) => {
-    const projectId = file.split(".")[0];
-    credentials[projectId] = `${keysPath}/${file}`;
-  });
-  const port = config.port || 3000;
-  app.listen(port, () => {
-    console.log(`Server running on port ${port}`);
-  });
-}
+// middleware: check ip whitelist
+app.use((req, res, next) => {
+  const ip = req.socket.remoteAddress;
+  if (ipWhitelist.length > 0 && !ipWhitelist.includes(ip)) {
+    logger.warn(`Unauthorized access from ${ip}`);
+    res.status(401).send("Unauthorized");
+    return;
+  }
+  next();
+});
 
+// middleware: initialize firebase app
 function initializaApp(req, res, next) {
   const projectId = req.headers["x-project-id"];
   if (!projectId || !projects.includes(projectId)) {
@@ -96,6 +85,7 @@ function initializaApp(req, res, next) {
   next();
 }
 
+// middleware: authorize requests
 function authorize(req, res, next) {
   if (auth == null) {
     res.status(500).send("Auth not initialized");
@@ -121,6 +111,38 @@ function authorize(req, res, next) {
     res.status(401).send("Unauthorized");
     return;
   }
+}
+
+// initialize the server
+function init() {
+  let config = readFileSync(resolve(__dirname, "config.json"), "utf-8");
+  config = JSON.parse(config);
+  // load projects
+  config.projects.forEach((projectId) => {
+    projects.push(projectId);
+    credentials[projectId] = "";
+  });
+  // load oauth clients
+  const clients = [];
+  config.clients.forEach((client) => {
+    const { id, secret, scopes } = client;
+    clients.push(new Client(id, secret, scopes));
+  });
+  auth = new OAuthCredentials(clients, readFileSync(privateKeyPath, "utf-8"));
+  // load firebase credentials
+  readdirSync(keysPath).forEach((file) => {
+    const projectId = file.split(".")[0];
+    credentials[projectId] = `${keysPath}/${file}`;
+  });
+  // load ip whitelist
+  if (config.ipWhitelist && config.ipWhitelist.length > 0) {
+    ipWhitelist.push(...config.ipWhiteList);
+  }
+  // start server
+  const port = config.port || 3000;
+  app.listen(port, () => {
+    console.log(`Server running on port ${port}`);
+  });
 }
 
 app.post("/token", (req, res) => {

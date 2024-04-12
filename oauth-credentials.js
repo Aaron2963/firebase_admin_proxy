@@ -1,7 +1,7 @@
 import Client from "./model/client.js";
 import jwt from "jsonwebtoken";
 
-class Credential {
+class OAuthCredentials {
   /**
    *
    * @param {Client[]} clients
@@ -50,4 +50,4 @@ class Credential {
   }
 }
 
-export default Credential;
+export default OAuthCredentials;
