@@ -19,13 +19,24 @@ Firbase Admin Proxy 是一個用於執行 Firebase Admin SDK API 簡易任務的
 
 # 使用方法
 
-## 1. 修改設定檔
+## 1. 設定應用程式
+
+### 1.1 伺服器設定檔 config.json
 
 複製 `config.json.example` 並命名為 `config.json`，根據實際情況修改設定檔內容。
 
 ```bash
 cd [project_dir]
 cp config.json.example config.json
+```
+
+### 1.2 JWT 金鑰檔案
+
+建立 RS256 金鑰檔案，用於 JWT 簽章，並存放在 `<project_dir>/keys/firebase_admin_proxy_auth.key`。
+
+```bash
+cd [project_dir]
+openssl genrsa -out keys/firebase_admin_proxy_auth.key 2048
 ```
 
 ## 2. 執行伺服器
