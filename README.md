@@ -2,7 +2,7 @@
 
 Firbase Admin Proxy 是一個用於執行 Firebase Admin SDK API 簡易任務的代理伺服器，提供了一個 RESTful API 介面，用於管理 Firebase 專案的用戶、憑證、文件等資源。
 
-代理伺服器的設定檔位於 `config.json`，請參照 `config.json.example` 根據實際情況修改設定檔內容。
+代理伺服器的設定檔位於 `<project_dir>/config.json`，請參照 `<project_dir>/config.json.example` 根據實際情況修改設定檔內容。
 修改過的設定檔會在重啟伺服器後生效。
 
 | 項目 | 說明 |
@@ -30,6 +30,23 @@ cd [project_dir]
 cp config.json.example config.json
 ```
 
+#### 1.1.1 專案 ID
+
+在 `projects` 陣列中填入 Firebase 專案 ID，這些專案將會被代理伺服器所管理。
+
+#### 1.1.2 設定用戶端憑證
+
+在 `clients` 陣列中填入 OAuth Client Credentials，這些憑證將用於 API 認證。
+請注意，`clients[i].secret` 是 OAuth Client Secret，這裡儲存的是加密過後的密碼，請參考使用 [5.1 加密密碼](#51-加密密碼) 工具將密碼加密。
+
+#### 1.1.3 IP 白名單
+
+在 `ipWhiteList` 陣列中填入允許存取的 IP 位址清單，這些 IP 將被允許存取代理伺服器。
+
+#### 1.1.4 SSL 憑證設定
+
+建立 SSL 憑證檔案，用於 HTTPS 通訊，並存放在 `<project_dir>/certs/firebase_admin_proxy_ssl.pem`, `<project_dir>/certs/firebase_admin_proxy_ssl.key`；金鑰的路徑可從 `ssl.key`, `ssl.cert` 設定。
+
 ### 1.2 JWT 金鑰檔案
 
 建立 RS256 金鑰檔案，用於 JWT 簽章，並存放在 `<project_dir>/keys/firebase_admin_proxy_auth.key`。
@@ -51,6 +68,8 @@ docker-compose up -d
 ## 3. 取得 OAuth Access Token
 
 透過 OAuth API 取得 OAuth Access Token，用於後續的 API 請求驗證，詳見 [1.1 取得 OAuth Access Token](#11-取得-oauth-access-token)。
+
+由於 config.json 只在代理伺服器啟動時讀取一次，因此加入新的 OAuth Client 後，必須重新啟動伺服器才能使修改生效。
 
 ## 4. 設定專案的服務帳戶憑證
 
