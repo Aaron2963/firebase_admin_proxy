@@ -94,6 +94,9 @@ POST /token
 
 #### 請求
 
+```headers
+Content-Type: application/x-www-form-urlencoded
+```
 ```x-www-form-urlencoded
 grant_type: client_credentials
 client_id: <client_id>
@@ -102,6 +105,10 @@ client_secret: <client_secret>
 
 #### 回應
 
+```headers
+Status: 200 OK
+Content-Type: application/json
+```
 ```json
 {
   "access_token": "<access_token>",
@@ -129,6 +136,7 @@ POST /credentials
 ```headers
 Authorization: Bearer <access_token>
 X-Project-ID: <project_id>
+Content-Type: application/json
 ```
 
 **Body**
@@ -137,6 +145,12 @@ X-Project-ID: <project_id>
 {
   "key": "<service_account_key_json_string>"
 }
+```
+
+#### 回應
+
+```headers
+Status: 204 No Content
 ```
 
 ## 3. Firebase Authentication API
@@ -255,7 +269,11 @@ Content-Type: application/json
 #### 回應
 
 ```headers
-Status: 204 No Content
+Status: 201 Created
+Content-Type: application/json
+```
+```json
+{ "uid": "aCi78jQVTUQALjo2fUr392veml53" }
 ```
 
 ### 3.4 刪除用戶
@@ -334,7 +352,31 @@ Content-Type: application/json
 
 #### 回應
 
+```headers
+Status: 200 OK
+Content-Type: application/json
+```
 ```json
+{
+  "iss": "https://securetoken.google.com/your-project-id",
+  "aud": "your-project-id",
+  "auth_time": 1681023456,
+  "user_id": "abc123uid",
+  "sub": "abc123uid",
+  "iat": 1681023500,
+  "exp": 1681027100,
+  "email": "user@example.com",
+  "email_verified": true,
+  "firebase": {
+    "identities": {
+      "email": ["user@example.com"],
+      "google.com": ["123456789012345678901"]
+    },
+    "sign_in_provider": "google.com"
+  },
+  "uid": "abc123uid"
+}
+
 ```
 
 

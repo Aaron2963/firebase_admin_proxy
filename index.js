@@ -101,7 +101,7 @@ function authorize(req, res, next) {
     next();
   } catch (error) {
     console.log("authorize failed:", error);
-    res.status(401).send("Unauthorized");
+    res.status(401).json({ error: error.message });
     return;
   }
 }
@@ -209,7 +209,7 @@ app.post("/credentials", [authorize], (req, res) => {
     res.status(204).send();
   } catch (error) {
     console.log("error", error);
-    res.status(400).send("Key must be a valid JSON");
+    res.status(400).json({ error: "Key must be a valid JSON" });
   }
 });
 
@@ -219,10 +219,14 @@ app.get("/auth/user", [authorize, initializaApp], async (req, res) => {
 });
 
 app.get("/auth/user/:uid", [authorize, initializaApp], async (req, res) => {
-  const user = await new Auth(apps[req.query.projectId]).getUser(
-    req.params.uid
-  );
-  res.json(user);
+  try {
+    const user = await new Auth(apps[req.query.projectId]).getUser(
+      req.params.uid
+    );
+    res.json(user);
+  } catch (error) {
+    res.status(404).json({ error: error.message });
+  }
 });
 
 app.post("/auth/user", [authorize, initializaApp], async (req, res) => {
@@ -231,7 +235,7 @@ app.post("/auth/user", [authorize, initializaApp], async (req, res) => {
     email,
     uid
   );
-  res.json({ userId });
+  res.status(201).json({ uid: userId });
 });
 
 app.delete("/auth/user/:uid", [authorize, initializaApp], async (req, res) => {
@@ -261,7 +265,7 @@ app.post(
       );
       res.json(token);
     } catch (error) {
-      res.status(401).send(error.message);
+      res.status(401).json({ error: error.message });
     }
   }
 );
@@ -274,7 +278,7 @@ app.get("/fs/doc", [authorize, initializaApp], async (req, res) => {
     res.json(doc);
   } catch (error) {
     console.log("error", error);
-    res.status(404).send(error.message);
+    res.status(404).json({ error: error.message });
   }
 });
 
@@ -287,7 +291,7 @@ app.post("/fs/doc", [authorize, initializaApp], async (req, res) => {
     res.status(204).send();
   } catch (error) {
     console.log("error", error);
-    res.status(404).send(error.message);
+    res.status(404).json({ error: error.message });
   }
 });
 
