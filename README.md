@@ -465,6 +465,65 @@ Status: 204 No Content
 ```
 
 
+### 4.3 查詢集合
+
+以 Where 條件查詢 FireStore 中的集合。
+
+```http
+POST /fs/collection/where
+```
+
+#### 請求
+
+**Headers**
+
+```headers
+Authorization: Bearer <access_token>
+X-Project-ID: <project_id>
+Content-Type: application/json
+```
+
+**Query Parameters**
+
+```query
+path: <path>
+```
+
+**Body**
+
+查詢的條件, operator 可選值: `<`, `<=`, `==`, `!=`, `>=`, `>`, `array-contains`, `in`, `not-in`, and `array-contains-any`。
+
+```json
+{
+  "field": "userId",
+  "operator": "==",
+  "value": "0qyff6a2ntiz0fqh"
+}
+```
+
+#### 回應
+
+```headers
+Status: 200 OK
+Content-Type: application/json
+```
+```json
+[
+  {
+    "userId": "0qyff6a2ntiz0fqh",
+    "endAt": {
+      "_seconds": 1694999400,
+      "_nanoseconds": 683000000
+    },
+    "startAt": {
+      "_seconds": 1694998873,
+      "_nanoseconds": 416000000
+    }
+  }
+]
+```
+
+
 
 ## 5. Utility
 

@@ -231,11 +231,15 @@ app.get("/auth/user/:uid", [authorize, initializaApp], async (req, res) => {
 
 app.post("/auth/user", [authorize, initializaApp], async (req, res) => {
   const { email, uid } = req.body;
-  const userId = await new Auth(apps[req.query.projectId]).createUser(
-    email,
-    uid
-  );
-  res.status(201).json({ uid: userId });
+  try {
+    const userId = await new Auth(apps[req.query.projectId]).createUser(
+      email,
+      uid
+    );
+    res.status(201).json({ uid: userId });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
 });
 
 app.delete("/auth/user/:uid", [authorize, initializaApp], async (req, res) => {
@@ -289,6 +293,21 @@ app.post("/fs/doc", [authorize, initializaApp], async (req, res) => {
       req.body
     );
     res.status(204).send();
+  } catch (error) {
+    console.log("error", error);
+    res.status(404).json({ error: error.message });
+  }
+});
+
+app.post('/fs/collection/where', [authorize, initializaApp], async (req, res) => {
+  try {
+    const docs = await new Document(apps[req.query.projectId]).queryCollectionWhere(
+      req.query.path,
+      req.body.field,
+      req.body.operator,
+      req.body.value
+    );
+    res.json(docs);
   } catch (error) {
     console.log("error", error);
     res.status(404).json({ error: error.message });
