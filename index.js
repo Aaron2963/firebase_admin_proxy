@@ -158,6 +158,9 @@ function init() {
   // start server
   const port = config.port || 3000;
   try {
+    if (!config?.ssl?.key || !config?.ssl?.cert) {
+      throw new Error("SSL key and cert pathes not found in config.json");
+    }
     const server = https.createServer(
       {
         key: readFileSync(config.ssl.key),
